@@ -1,0 +1,31 @@
+bits 32 ; assembling for the 32 bits architecture
+
+; declare the EntryPoint (a label defining the very first instruction of the program)
+global start        
+
+; declare external functions needed by our program
+extern exit               ; tell nasm that exit exists even if we won't be defining it
+import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+
+segment data use32 class=data
+    mesaj  db "Give the values for a hexadecimal number a and a decimal number b", 0
+        a dd  0h
+        b dd  0
+         formata  db "%x", 0
+         formatb db "%d",0
+
+segment code use32 class=code
+    push dword mesaj 
+    call [printf]
+    add esp, 4 * 1
+        push dword a
+    push dword formata
+    call [scanf]
+         push dword b
+     push dword formatb
+     call [scanf]
+
+    add esp, 4 * 2
+        push    dword 0
+        call    [exit]

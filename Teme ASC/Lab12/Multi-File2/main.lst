@@ -1,0 +1,48 @@
+     1                                  bits 32
+     2                                  
+     3                                  global start
+     4                                  
+     5                                  import printf msvcrt.dll
+     6                                  import exit msvcrt.dll
+     7                                  extern printf, exit,scanf
+     8                                  
+     9                                  %include "modul.asm"
+     1                              <1> t
+     1          ******************  <1>  warning: label alone on a line without a colon might be in error [-w+orphan-labels]
+    10                                  
+    11                                  segment data use32 class=data
+    12                                      ;message db "%s"
+    13 00000000 616E616172656D6572-         sir dd "anaaremere"
+    13 00000009 650000             
+    14                                      len1 equ ($-sir);=$
+    15 0000000C 4F5051525354555657-         alfabet dd "OPQRSTUVWXYZABCDEFGHIJKLMN"
+    15 00000015 58595A414243444546-
+    15 0000001E 4748494A4B4C4D4E00-
+    15 00000027 00                 
+    16                                      len2 equ ($-alfabet)
+    17 00000028 25735C6E00000000            format dd "%s\n",0
+    18                                      
+    19 00000030 4F75747075743D2573-     	format_string db "Output=%s", 0
+    19 00000039 00                 
+    20                                      
+    21                                  
+    22                                  
+    23                                  segment code use32 class=code
+    24                                  start:
+    25                                      ;push  dword message
+    26                                      ;call  [scanf]
+    27                                  	;push dword 6
+    28 00000000 BE[00000000]            	mov ESI,sir
+    29 00000005 8B0D0C000000                mov ECX,[len1]
+    30                                      ret_point:
+    31 0000000B AD                              lodsd
+    32                                          call modul
+    32          ******************       error: symbol `modul' undefined
+    33                                      loop:
+    34 0000000C 50                      	push eax
+    35 0000000D 68[30000000]            	push format_string
+    36 00000012 FF15[00000000]          	call [printf]
+    37 00000018 83C408                  	add esp, 2*4
+    38                                  
+    39 0000001B 6A00                    	push 0
+    40 0000001D FF15[00000000]          	call [exit]

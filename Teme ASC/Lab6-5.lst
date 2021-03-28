@@ -1,0 +1,48 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13                                      ; ...
+    14 00000000 072137132E                  s1 db 7,33,55,19,46
+    15                                      len1 equ ($-s1)
+    16 00000005 2115070D1B1337012E          s2 db 33,21,7,13,27,19,55,1,46
+    17                                      len2 equ ($-s2)
+    18 0000000E 00<rept>                    d times len2 db 0
+    19                                  ; our code starts here
+    20                                  segment code use32 class=code
+    21                                      start:
+    22                                          ; ...
+    23 00000000 BB00000000                      mov EBX,0
+    24 00000005 FC                              CLD
+    25 00000006 BE[0E000000]                    mov ESI,d
+    26                                          LoopStart:
+    27 0000000B 8A83[05000000]                      mov AL,[s2+EBX];BL nu este un offset valid, BX se bloca in debugger
+    28 00000011 B905000000                          mov ECX,len1
+    29 00000016 BF[00000000]                        mov EDI, s1
+    30 0000001B B200                                mov DL,0
+    31                                              Search:
+    32 0000001D FEC2                                    inc DL
+    33 0000001F AE                                      SCASB
+    34 00000020 740C                                    JE Found
+    35 00000022 E2F9                                Loop Search
+    36 00000024 B000                                mov AL,0
+    37 00000026 8883[0E000000]                      mov [d+EBX],AL
+    38 0000002C EB08                                JMP Skip
+    39                                              Found:
+    40 0000002E 88D0                                mov AL,DL
+    41 00000030 8883[0E000000]                      mov [d+EBX],AL
+    42                                              Skip:
+    43 00000036 43                                  inc EBX
+    44 00000037 83FB09                              cmp EBX,len2
+    45 0000003A 72CF                            JB LoopStart
+    46                                          ; exit(0)
+    47 0000003C 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    48 0000003E FF15[00000000]                  call    [exit]       ; call exit to terminate the program

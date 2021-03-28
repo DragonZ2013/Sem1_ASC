@@ -1,0 +1,45 @@
+     1                                  ; Codul de mai jos va calcula rezultatul unor operatii aritmetice in registrul EAX, va salva valoarea registrilor, apoi va afisa valoarea rezultatului si va restaura valoarea registrilor.
+     2                                  bits 32
+     3                                  
+     4                                  global start        
+     5                                  
+     6                                  ; declararea functiilor externe folosite de program
+     7                                  extern exit, printf  ; adaugam printf ca functie externa            
+     8                                  import exit msvcrt.dll    
+     9                                  import printf msvcrt.dll    ; indicam asamblorului ca functia printf se gaseste in libraria msvcrt.dll
+    10                                                            
+    11                                  segment data use32 class=data
+    12                                  	; sirurile de caractere sunt de tip byte
+    13 00000000 256400                  	format  db "%d", 0  ; %d <=> un numar decimal (baza 10)
+    14                                  	
+    15                                  segment code use32 class=code
+    16                                  	start:
+    17                                  		; vom calcula 20 + 123 + 7 in EAX
+    18 00000000 B814000000              		mov eax, 20
+    19 00000005 83C07B                  		add eax, 123
+    20 00000008 83C007                  		add eax, 7         ; eax = 150 (baza 10) sau 0x96 (baza 16)
+    21                                  		
+    22                                  		; salvam valoarea registrilor deoarece apelul functiei sistem printf va modifica valoarea acestora
+    23                                  		; folosim instructiunea PUSHAD care salveaza pe stiva valorile mai multor registrii, printre care EAX, ECX, EDX si EBX 
+    24                                  		; in acest exemplu este important sa salvam doar valoarea registrului EAX, dar instructiunea poate fi aplicata generic
+    25 0000000B 60                      		PUSHAD
+    26                                  	   
+    27                                  		; vom apela printf(format, eax) => vom afisa valoarea din eax
+    28                                  		; punem parametrii pe stiva de la dreapta la stanga
+    29 0000000C 50                      		push dword eax
+    30 0000000D 68[00000000]            		push dword format ; ! pe stiva se pune adresa string-ului, nu valoarea
+    31 00000012 FF15[00000000]          		call [printf]      ; apelam functia printf pentru afisare
+    32 00000018 83C408                  		add esp, 4*2       ; eliberam parametrii de pe stiva ; 4 = dimensiunea unui dword; 2 = nr de parametri
+    33                                  		
+    34                                  		; dupa apelul functiei printf registrul EAX are o valoare setata de aceasta functie (nu valoarea 150 pe care am calculat-o la inceputul programului)
+    35                                  		; restauram valoarea registrilor salvati pe stiva la apelul instructii PUSHAD folosind instructiunea POPAD
+    36                                  		; aceasta instructiune ia valori de pe stiva si le completeaza in mai multi registrii printre care EAX, ECX, EDX si EBX
+    37                                  		; este important ca inaintea unui apel al instructiunii POPAD sa ne asiguram ca exista suficiente valori 
+    38                                  		; pe stiva pentru a fi incarcate in registrii (de exemplu ca anterior a fost apelata instructiunea PUSHA)
+    39 0000001B 61                      		POPAD
+    40                                  		
+    41                                  		; acum valoarea registrului EAX a fost restaurata la valoarea de dinaintea apelului instructiunii PUSHAD (in acest caz valoarea 150)
+    42                                  		
+    43                                  		; exit(0)
+    44 0000001C 6A00                    		push dword 0      ; punem pe stiva parametrul pentru exit
+    45 0000001E FF15[00000000]          		call [exit]       ; apelam exit pentru a incheia programul

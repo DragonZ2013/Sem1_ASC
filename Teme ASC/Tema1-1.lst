@@ -1,0 +1,43 @@
+     1                                  ; asamblare 			nasm -fobj exemplu.asm
+     2                                  ; linkeditare 			alink -oPE -subsys console -entry start exemplu.obj
+     3                                  ; depanare  			ollydbg exemplu.exe
+     4                                  ; programe necesare 	http://www.nasm.us + alink: alink.sourceforge.net/download.html + http://www.ollydbg.de
+     5                                  
+     6                                  bits 32
+     7                                  
+     8                                  global start
+     9                                  extern ExitProcess, printf
+    10                                  import ExitProcess kernel32.dll
+    11                                  import printf msvcrt.dll
+    12                                  
+    13                                  segment code use32 class=CODE
+    14                                  ;a,b,c - byte, d - word
+    15                                  ;[d-2*(a-b)+b*c]/2
+    16 00000000 0F                          a db 15
+    17 00000001 0A                          b db 10
+    18 00000002 28                          c db 40
+    19 00000003 3C00                        d dw 60
+    20                                  start:
+    21 00000005 A0[01000000]                mov AL, [b]; AL=b
+    22 0000000A 8A15[02000000]              mov DL, [c]; DL=c
+    23 00000010 F6E2                        mul DL; AX=AL*DL=b*c
+    24 00000012 6650                        push AX
+    25 00000014 665A                        pop DX; DX=b*c
+    26 00000016 A0[00000000]                mov AL, [a]; AL=a
+    27 0000001B 2A05[01000000]              sub AL, [b]; AL=a-b
+    28 00000021 B402                        mov AH, 2; AH=2
+    29 00000023 F6E4                        mul AH;AX=2*(a-b)
+    30 00000025 6650                        push AX
+    31 00000027 66A1[03000000]              mov AX, [d]; AX=d
+    32 0000002D 6601D0                      add AX,DX; AX=d+b*c
+    33 00000030 665A                        pop DX;DX=2*(a-b)
+    34 00000032 6629D0                      sub AX,DX;AX=[d-2*(a-b)-b*c]
+    35 00000035 66BA0200                    mov DX, 2; DX=2
+    36 00000039 66F7F2                      div DX; AX=[d-2*(a-b)-b*c]/2
+    37                                      
+    38                                      
+    39                                  
+    40                                  
+    41                                  segment data use32 class=DATA
+    42 00000000 4D6573616A210D0A00          msg: db "Mesaj!", 13, 10, 0
+    43                                      

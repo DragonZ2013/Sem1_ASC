@@ -1,0 +1,118 @@
+     1                                  ; Codul de mai jos va deschide un fisier numit "ana.txt" din directorul curent si va citi un text de maxim 100 de caractere din acel fisier.
+     2                                  ; Programul va folosi functia fopen pentru deschiderea fisierului, functia fread pentru citirea din fisier si functia fclose pentru inchiderea fisierului deschis.
+     3                                  ; Deoarece in apelul functiei fopen programul foloseste modul de acces "r", daca un fisier cu numele dat nu exista in directorul curent, apelul functiei fopen nu va reusi (eroare). Detalii despre modurile de acces s
+     4                                  
+     5                                  bits 32 
+     6                                  
+     7                                  global start        
+     8                                  
+     9                                  ; declare external functions needed by our program
+    10                                  extern exit, fopen, fread, fclose, printf
+    11                                  import exit msvcrt.dll
+    12                                  import printf msvcrt.dll  
+    13                                  import fopen msvcrt.dll  
+    14                                  import fread msvcrt.dll
+    15                                  import fclose msvcrt.dll
+    16                                  
+    17                                  ; our data is declared here (the variables needed by our program)
+    18                                  segment data use32 class=data
+    19 00000000 616E612E74787400            nume_fisier db "ana.txt", 0  ; numele fisierului care va fi deschis
+    20 00000008 7200                        mod_acces db "r", 0          ; modul de deschidere a fisierului - 
+    21                                                                   ; r - pentru scriere. fisierul trebuie sa existe 
+    22                                      
+    23 0000000A FFFFFFFF                    descriptor_fis dd -1         ; variabila in care vom salva descriptorul fisierului - necesar pentru a putea face referire la fisier
+    24                                      len equ 100                  ; numarul maxim de elemente citite din fisier.                            
+    25 0000000E 00<rept>                    text times len db 0          ; sirul in care se va citi textul din fisier  
+    26 00000072 4E7220766F63616C65-         format db "Nr vocale %d",0
+    26 0000007B 20256400           
+    27                                  
+    28                                  ; our code starts here
+    29                                  segment code use32 class=code
+    30                                      start:
+    31                                          ; apelam fopen pentru a deschide fisierul
+    32                                          ; functia va returna in EAX descriptorul fisierului sau 0 in caz de eroare
+    33                                          ; eax = fopen(nume_fisier, mod_acces)
+    34 00000000 68[08000000]                    push dword mod_acces     
+    35 00000005 68[00000000]                    push dword nume_fisier
+    36 0000000A FF15[00000000]                  call [fopen]
+    37 00000010 83C408                          add esp, 4*2                ; eliberam parametrii de pe stiva
+    38                                  
+    39 00000013 A3[0A000000]                    mov [descriptor_fis], eax   ; salvam valoarea returnata de fopen in variabila descriptor_fis
+    40                                          
+    41                                          ; verificam daca functia fopen a creat cu succes fisierul (daca EAX != 0)
+    42 00000018 83F800                          cmp eax, 0
+    43 0000001B 0F8487000000                    je final
+    44                                          
+    45                                          ; citim textul in fisierul deschis folosind functia fread
+    46                                          ; eax = fread(text, 1, len, descriptor_fis)
+    47 00000021 FF35[0A000000]                  push dword [descriptor_fis]
+    48 00000027 6A64                            push dword len
+    49 00000029 6A01                            push dword 1
+    50 0000002B 68[0E000000]                    push dword text     
+    51 00000030 FF15[00000000]                  call [fread]
+    52 00000036 89C3                            mov ebx,eax;salvarea lungimii (returnate in eax) in ebx
+    53 00000038 83C410                          add esp, 4*4                 ; dupa apelul functiei fread EAX contine numarul de caractere citite din fisier
+    54                                          
+    55                                          ; apelam functia fclose pentru a inchide fisierul
+    56                                          ; fclose(descriptor_fis)
+    57 0000003B FF35[0A000000]                  push dword [descriptor_fis]
+    58 00000041 FF15[00000000]                  call [fclose]
+    59                                          
+    60 00000047 83C404                          add esp, 4
+    61                                          ;push dword text
+    62                                          ;call [printf]
+    63                                          ;add esp, 4
+    64 0000004A 89D9                            mov ecx,ebx
+    65 0000004C BB00000000                      mov ebx, 0
+    66                                          
+    67 00000051 BF[0E000000]                    mov edi,text
+    68 00000056 FD                              std
+    69                                          repeta:
+    70                                              ;comparam continutul edi(textul) cu fiecare vocala pe rand
+    71 00000057 B061                                mov al,"a"
+    72 00000059 3A07                                cmp al,byte[edi]
+    73 0000005B 7438                                JE inclabel
+    74 0000005D B065                                mov al,"e"
+    75 0000005F 3A07                                cmp al,byte[edi]
+    76 00000061 7432                                JE inclabel
+    77 00000063 B069                                mov al,"i"
+    78 00000065 3A07                                cmp al,byte[edi]
+    79 00000067 742C                                JE inclabel
+    80 00000069 B06F                                mov al,"o"
+    81 0000006B 3A07                                cmp al,byte[edi]
+    82 0000006D 7426                                JE inclabel
+    83 0000006F B075                                mov al,"u"
+    84 00000071 3A07                                cmp al,byte[edi]
+    85 00000073 7420                                JE inclabel
+    86 00000075 B041                                mov al,"A"
+    87 00000077 3A07                                cmp al,byte[edi]
+    88 00000079 741A                                JE inclabel
+    89 0000007B B045                                mov al,"E"
+    90 0000007D 3A07                                cmp al,byte[edi]
+    91 0000007F 7414                                JE inclabel
+    92 00000081 B049                                mov al,"I"
+    93 00000083 3A07                                cmp al,byte[edi]
+    94 00000085 740E                                JE inclabel
+    95 00000087 B04F                                mov al,"O"
+    96 00000089 3A07                                cmp al,byte[edi]
+    97 0000008B 7408                                JE inclabel
+    98 0000008D B055                                mov al,"U"
+    99 0000008F 3A07                                cmp al,byte[edi]
+   100 00000091 7402                                JE inclabel
+   101                                              
+   102 00000093 EB01                                JMP skip
+   103                                              inclabel:
+   104 00000095 43                                  inc ebx ;cresterea contorului ebx
+   105                                              skip:
+   106 00000096 47                                  inc (edi)
+   107 00000097 E2BE                            loop repeta
+   108                                          
+   109 00000099 53                              push dword ebx
+   110 0000009A 68[72000000]                    push dword format
+   111 0000009F FF15[00000000]                  call [printf]
+   112 000000A5 83C408                          add esp,4*2
+   113                                        final:
+   114                                          
+   115                                          ; exit(0)
+   116 000000A8 6A00                            push    dword 0      
+   117 000000AA FF15[00000000]                  call    [exit]       

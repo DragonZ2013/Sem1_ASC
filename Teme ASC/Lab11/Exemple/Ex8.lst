@@ -1,0 +1,65 @@
+     1                                  ; Codul de mai jos va deschide un fisier numit "ana.txt" din directorul curent si va citi un text de maxim 100 de caractere din acel fisier.
+     2                                  ; Programul va folosi functia fopen pentru deschiderea fisierului, functia fread pentru citirea din fisier si functia fclose pentru inchiderea fisierului deschis.
+     3                                  ; Deoarece in apelul functiei fopen programul foloseste modul de acces "r", daca un fisier cu numele dat nu exista in directorul curent, apelul functiei fopen nu va reusi (eroare). Detalii despre modurile de acces s
+     4                                  
+     5                                  bits 32 
+     6                                  
+     7                                  global start        
+     8                                  
+     9                                  ; declare external functions needed by our program
+    10                                  extern exit, fopen, fread, fclose, printf
+    11                                  import exit msvcrt.dll
+    12                                  import printf msvcrt.dll  
+    13                                  import fopen msvcrt.dll  
+    14                                  import fread msvcrt.dll
+    15                                  import fclose msvcrt.dll
+    16                                  
+    17                                  ; our data is declared here (the variables needed by our program)
+    18                                  segment data use32 class=data
+    19 00000000 616E612E74787400            nume_fisier db "ana.txt", 0  ; numele fisierului care va fi deschis
+    20 00000008 7200                        mod_acces db "r", 0          ; modul de deschidere a fisierului - 
+    21                                                                   ; r - pentru scriere. fisierul trebuie sa existe 
+    22 0000000A FFFFFFFF                    descriptor_fis dd -1         ; variabila in care vom salva descriptorul fisierului - necesar pentru a putea face referire la fisier
+    23                                      len equ 100                  ; numarul maxim de elemente citite din fisier.                            
+    24 0000000E 00<rept>                    text times len db 0          ; sirul in care se va citi textul din fisier  
+    25                                  
+    26                                  ; our code starts here
+    27                                  segment code use32 class=code
+    28                                      start:
+    29                                          ; apelam fopen pentru a deschide fisierul
+    30                                          ; functia va returna in EAX descriptorul fisierului sau 0 in caz de eroare
+    31                                          ; eax = fopen(nume_fisier, mod_acces)
+    32 00000000 68[08000000]                    push dword mod_acces     
+    33 00000005 68[00000000]                    push dword nume_fisier
+    34 0000000A FF15[00000000]                  call [fopen]
+    35 00000010 83C408                          add esp, 4*2                ; eliberam parametrii de pe stiva
+    36                                  
+    37 00000013 A3[0A000000]                    mov [descriptor_fis], eax   ; salvam valoarea returnata de fopen in variabila descriptor_fis
+    38                                          
+    39                                          ; verificam daca functia fopen a creat cu succes fisierul (daca EAX != 0)
+    40 00000018 83F800                          cmp eax, 0
+    41 0000001B 7435                            je final
+    42                                          
+    43                                          ; citim textul in fisierul deschis folosind functia fread
+    44                                          ; eax = fread(text, 1, len, descriptor_fis)
+    45 0000001D FF35[0A000000]                  push dword [descriptor_fis]
+    46 00000023 6A64                            push dword len
+    47 00000025 6A01                            push dword 1
+    48 00000027 68[0E000000]                    push dword text        
+    49 0000002C FF15[00000000]                  call [fread]
+    50 00000032 83C410                          add esp, 4*4                 ; dupa apelul functiei fread EAX contine numarul de caractere citite din fisier
+    51                                          
+    52                                          ; apelam functia fclose pentru a inchide fisierul
+    53                                          ; fclose(descriptor_fis)
+    54 00000035 FF35[0A000000]                  push dword [descriptor_fis]
+    55 0000003B FF15[00000000]                  call [fclose]
+    56 00000041 83C404                          add esp, 4
+    57 00000044 68[0E000000]                    push dword text
+    58 00000049 FF15[00000000]                  call [printf]
+    59 0000004F 83C404                          add esp, 4
+    60                                          
+    61                                        final:
+    62                                          
+    63                                          ; exit(0)
+    64 00000052 6A00                            push    dword 0      
+    65 00000054 FF15[00000000]                  call    [exit]       

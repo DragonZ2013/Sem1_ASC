@@ -1,0 +1,58 @@
+     1                                  ; asamblare 			nasm -fobj exemplu.asm
+     2                                  ; linkeditare 			alink -oPE -subsys console -entry start exemplu.obj
+     3                                  ; depanare  			ollydbg exemplu.exe
+     4                                  ; programe necesare 	http://www.nasm.us + alink: alink.sourceforge.net/download.html + http://www.ollydbg.de
+     5                                  
+     6                                  bits 32
+     7                                  
+     8                                  global start
+     9                                  extern ExitProcess, printf
+    10                                  import ExitProcess kernel32.dll
+    11                                  import printf msvcrt.dll
+    12                                  
+    13                                  segment code use32 class=CODE
+    14                                  ;a-doubleword b-byte c-word x-qword
+    15                                  ;(a+b/c-1)/(b+2)-x
+    16                                  ;Cu semn
+    17 00000000 0F000000                    a dd 15
+    18 00000004 0A                          b db 10
+    19 00000005 0500                        c dw 5
+    20 00000007 3C00000000000000            x dq 60
+    21                                  start:
+    22 0000000F A0[04000000]                mov AL, [b]
+    23 00000014 6698                        cbw
+    24 00000016 6699                        cwd
+    25 00000018 668B1D[05000000]            mov BX, [c];DX=c
+    26 0000001F 66F7F3                      div BX; AL=b/c
+    27 00000022 6699                        cwd
+    28 00000024 668B1D[00000000]            mov BX, word[a]
+    29 0000002B 668B0D[02000000]            mov CX, word[a+2]
+    30 00000032 6601D8                      add AX,BX
+    31 00000035 6611CA                      adc DX,CX
+    32 00000038 6683E801                    sub AX,1
+    33 0000003C 6683DA00                    sbb DX,0
+    34 00000040 6699                        cwd
+    35 00000042 6650                        push AX
+    36 00000044 6659                        pop CX
+    37 00000046 A0[04000000]                mov AL, [b]
+    38 0000004B 6698                        cbw
+    39 0000004D 6683C002                    add AX,2
+    40 00000051 6650                        push AX
+    41 00000053 665B                        pop BX
+    42 00000055 6651                        push CX
+    43 00000057 6658                        pop AX
+    44 00000059 66F7F3                      div BX;AX=DX:AX/BX = (a+b/c-1)/(b+2)
+    45 0000005C 8B1D[07000000]              mov EBX, dword[x]
+    46 00000062 8B0D[0B000000]              mov ECX, dword[x+4];EDX:ECX=x
+    47 00000068 6650                        push AX
+    48 0000006A 6652                        push DX
+    49 0000006C 58                          pop EAX
+    50 0000006D 99                          cdq
+    51 0000006E 29D8                        sub EAX,EBX
+    52 00000070 19CA                        sbb EDX,ECX;(a+b/c-1)/(b+2)-x
+    53 00000072 E8(00000000)                call ExitProcess
+    54                                  
+    55                                  
+    56                                  segment data use32 class=DATA
+    57 00000000 4D6573616A210D0A00          msg: db "Mesaj!", 13, 10, 0
+    58                                      
