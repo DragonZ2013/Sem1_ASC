@@ -1,0 +1,33 @@
+XLAT:
+
+AL -  pozitia elementului din sir 
+EBX -  adresa sirului  
+
+XLAT    ->efect:  AL = elementul din sirul de la adresa EBX
+
+XCHG:
+
+XCHG op1,op2
+-min 1 e registru
+-acelasi tip
+-swap
+
+LEA:
+
+LEA EAX, [v] <=> MOV EAX,V
+avantaj:
+LEA EAX, [EBX+v-6] se executa intr-o singura instanta fara a ocupa ALU 
+MOV EAX,EBX+v-6 IMPOSIBIL
+
+
+INST ASUPRA FLAGURILOR
+
+LAHF -copiaza SF,ZF,AF,PF,CF pe bitii din AH
+	  AH: 7  6  4  2  0
+
+SAHF -copiaza SF,ZF,AF,PF,CF de pe bitii din AH
+	  AH: 7  6  4  2  0
+
+PUSHF-continutul registrului Flags se transfera pe stiva (in vf) (WORD)
+
+POPF -extrage WORD-ul de pe vf stivei in registrul Flags dupa indicatorii corespunzatori
